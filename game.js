@@ -10,12 +10,12 @@ const keys = {};
 const justPressed = {};
 
 window.addEventListener('keydown', e => {
-  justPressed[e.code] = !keys[e.code];
   keys[e.code] = true;
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code))
-    e.preventDefault();
+  justPressed[e.code] = true;
 });
-window.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('keyup', e => {
+  keys[e.code] = false;
+});
 
 function pressed(code) {
   const val = justPressed[code];
@@ -62,6 +62,17 @@ const RADII  = [0, 16, 30, 50];   // por tamaño 1, 2, 3
 const SPEEDS = [0, 85, 55, 32];   // velocidad base por tamaño
 const POINTS = [0, 100, 50, 20];  // puntos por tamaño
 
+// Variantes predefinidas para asteroides grandes (valores como fracción del radio)
+const LARGE_SHAPES = [
+  // Asteroide con muesca rectangular en el lado derecho
+  [
+    [-0.40, -0.90], [ 0.40, -0.90], [ 0.70, -0.55], [ 1.00, -0.55],
+    [ 1.00, -0.10], [ 0.55, -0.10], [ 0.55,  0.30], [ 1.00,  0.30],
+    [ 0.90,  0.60], [ 0.25,  0.90], [-0.30,  0.90], [-0.90,  0.50],
+    [-1.00, -0.15], [-0.60, -0.70],
+  ],
+];
+
 class Asteroid {
   constructor(x, y, size = 3) {
     this.x    = x;
@@ -77,13 +88,18 @@ class Asteroid {
     this.rotSpeed = rand(-1.2, 1.2);
     this.rot = rand(0, Math.PI * 2);
 
-    // Polígono irregular
-    const n = randInt(8, 13);
-    this.verts = [];
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const r = this.radius * rand(0.6, 1.0);
-      this.verts.push([Math.cos(a) * r, Math.sin(a) * r]);
+    // Polígono irregular (con variantes predefinidas para asteroides grandes)
+    if (size === 3 && Math.random() < 0.5) {
+      const template = LARGE_SHAPES[randInt(0, LARGE_SHAPES.length - 1)];
+      this.verts = template.map(([x, y]) => [x * this.radius, y * this.radius]);
+    } else {
+      const n = randInt(8, 13);
+      this.verts = [];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const r = this.radius * rand(0.6, 1.0);
+        this.verts.push([Math.cos(a) * r, Math.sin(a) * r]);
+      }
     }
   }
 
